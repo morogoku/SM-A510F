@@ -1,0 +1,8 @@
+ui_print(" ");
+ui_print("ADM Kernel TEST");
+ui_print("For SM-A510F ");
+ui_print(" ");
+ui_print("Extracting boot image...");
+package_extract_file("boot.img", "/dev/block/platform/13540000.dwmmc0/by-name/BOOT");
+ui_print(" ");
+ui_print("ADM Kernel Installed");
