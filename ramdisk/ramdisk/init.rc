@@ -1695,3 +1695,9 @@ on property:ro.product_ship=false
 	chmod 0440 /proc/sluggishinfo
 	mkdir /data/log/sluggishinfo 0775 system system
 	restorecon /data/log/sluggishinfo
+
+# Init kernel-init	
+	service kernel-init /sbin/kernel-init.sh
+    class main
+    user root
+    oneshot
