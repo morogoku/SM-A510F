@@ -11,15 +11,11 @@ rm -f $PWD/build.log
 # Remove Created Ramdisk Files
 rm -f $PWD/ramdisk/image-new.img
 rm -f $PWD/ramdisk/ramdisk-new.cpio.gz
-rm -f $PWD/ramdisk/split_img/boot.img-dtb
 rm -f $PWD/ramdisk/split_img/boot.img-zImage
 
 # Remove Releasetool files
 rm -f $PWD/release/zip/*.zip
 rm -f $PWD/release/tar/*.tar
-
-# Removed Created dtb Folder
-rm -rf $PWD/arch/arm64/boot/dtb
 
 # Recreate Ramdisk Placeholders
 echo "" > ramdisk/ramdisk/data/.placeholder

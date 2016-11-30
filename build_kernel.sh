@@ -18,9 +18,6 @@ KERNEL_DEFCONFIG=exynos7580-custom_defconfig
 
 RDIR=$(pwd)
 OUTDIR=$RDIR/arch/$ARCH/boot
-DTSDIR=$RDIR/arch/$ARCH/boot/dts
-DTBDIR=$OUTDIR/dtb
-DTCTOOL=$RDIR/scripts/dtc/dtc
 INCDIR=$RDIR/include
 PAGE_SIZE=2048
 DTB_PADDING=0
@@ -36,25 +33,12 @@ FUNC_DELETE_PLACEHOLDERS()
         echo ""
 }
 
-FUNC_CLEAN_DTB()
-{
-	if ! [ -d $RDIR/arch/$ARCH/boot/dts ] ; then
-		echo "no directory : "$RDIR/arch/$ARCH/boot/dts""
-	else
-		echo "rm files in : "$RDIR/arch/$ARCH/boot/dts/*.dtb""
-		rm $RDIR/arch/$ARCH/boot/dts/*.dtb
-		rm $RDIR/arch/$ARCH/boot/dtb/*.dtb
-		rm $RDIR/arch/$ARCH/boot/boot.img-dtb
-		rm $RDIR/arch/$ARCH/boot/boot.img-zImage
-	fi
-}
-
 FUNC_BUILD_KERNEL()
 {
 	echo ""
         echo "build common config="$KERNEL_DEFCONFIG ""
         echo "build variant config="$MODEL ""
-	FUNC_CLEAN_DTB
+
 	make -j$BUILD_JOB_NUMBER ARCH=$ARCH \
 			CROSS_COMPILE=$BUILD_CROSS_COMPILE \
 			$KERNEL_DEFCONFIG || exit -1
@@ -63,44 +47,12 @@ FUNC_BUILD_KERNEL()
 	echo ""
 }
 
-FUNC_BUILD_DTB()
-{
-	[ -f "$DTCTOOL" ] || {
-		echo "You need to run ./build.sh first!"
-		exit 1
-	}
-
-	DTSFILES="exynos7580-a5xelte_eur_open_00 exynos7580-a5xelte_eur_open_01
-			exynos7580-a5xelte_eur_open_02 exynos7580-a5xelte_eur_open_03
-			exynos7580-a5xelte_eur_open_08 exynos7580-a5xelte_eur_open_09"
-
-	mkdir -p $OUTDIR $DTBDIR
-	cd $DTBDIR || {
-		echo "Unable to cd to $DTBDIR!"
-		exit 1
-	}
-	rm -f ./*
-	echo "Processing dts files."
-	for dts in $DTSFILES; do
-		echo "=> Processing: ${dts}.dts"
-		${CROSS_COMPILE}cpp -nostdinc -undef -x assembler-with-cpp -I "$INCDIR" "$DTSDIR/${dts}.dts" > "${dts}.dts"
-		echo "=> Generating: ${dts}.dtb"
-		$DTCTOOL -p $DTB_PADDING -i "$DTSDIR" -O dtb -o "${dts}.dtb" "${dts}.dts"
-	done
-	echo "Generating dtb.img."
-	$RDIR/tools/dtbtool -o "$OUTDIR/dtb.img" -p "$DTBDIR/" -s $PAGE_SIZE
-	echo "Done."
-}
-
 FUNC_BUILD_RAMDISK()
 {
 	mv $RDIR/arch/$ARCH/boot/Image $RDIR/arch/$ARCH/boot/boot.img-zImage
-	mv $RDIR/arch/$ARCH/boot/dtb.img $RDIR/arch/$ARCH/boot/boot.img-dtb
 
 	rm -f $RDIR/ramdisk/split_img/boot.img-zImage
-	rm -f $RDIR/ramdisk/split_img/boot.img-dtb
 	mv -f $RDIR/arch/$ARCH/boot/boot.img-zImage $RDIR/ramdisk/split_img/boot.img-zImage
-	mv -f $RDIR/arch/$ARCH/boot/boot.img-dtb $RDIR/ramdisk/split_img/boot.img-dtb
 	cd $RDIR/ramdisk
 	./repackimg.sh
 	echo SEANDROIDENFORCE >> image-new.img
@@ -130,7 +82,6 @@ FUNC_BUILD_FLASHABLES()
 	START_TIME=`date +%s`
 	FUNC_DELETE_PLACEHOLDERS
 	FUNC_BUILD_KERNEL
-	FUNC_BUILD_DTB
 	FUNC_BUILD_RAMDISK
 	FUNC_BUILD_FLASHABLES
 	END_TIME=`date +%s`
